@@ -1,0 +1,38 @@
+language: shell
+
+branches:
+  only:
+    - master
+    - staging
+    - production
+
+services:
+  - docker
+
+before_script:
+  - openssl aes-256-cbc -K $encrypted_cd7359772425_key -iv $encrypted_cd7359772425_iv -in secrets/Unity_lic.ulf.enc -out ./Unity_lic.ulf -d
+  - export UNITY_LICENSE_CONTENT=`cat Unity_lic.ulf`
+  - rm Unity_lic.ulf
+  - docker pull $IMAGE_NAME
+
+jobs:
+  include:
+    - stage: test
+      name: "Edit Mode Test"
+      script: "chmod +x ./ci/docker_test.sh && ./ci/docker_test.sh"
+      env: TEST_PLATFORM=editmode IMAGE_NAME=gableroux/unity3d:2019.4.1f1
+      addons:
+        artifacts:
+          region: "ap-southeast-1"
+          paths:
+            - "$(pwd)/$TEST_PLATFORM-results.xml"
+
+    - stage: build
+      name: "Build StandaloneOSX"
+      env: BUILD_TARGET=StandaloneOSX IMAGE_NAME=gableroux/unity3d:2019.4.1f1
+      script: "chmod +x ./ci/docker_build.sh && ./ci/docker_build.sh"
+      addons:
+        artifacts:
+          region: "ap-southeast-1"
+          paths:
+            - "./Builds/"
