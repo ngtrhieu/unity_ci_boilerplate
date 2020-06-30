@@ -1,0 +1,6 @@
+{
+  "editor.wordWrap": "wordWrapColumn",
+  "files.exclude": {
+    "node_modules": true
+  }
+}
